@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ariqhikari.sortingcomparison.databinding.ActivityMainBinding
@@ -20,7 +21,6 @@ import retrofit2.Response
 class MainActivity : AppCompatActivity() {
     lateinit var binding : ActivityMainBinding
     lateinit var adapterMain: AdapterMain
-    lateinit var quotes : ArrayList<QuoteModel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,8 +43,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getQuotes() {
-//        showLoading(true)
+    fun getQuotes(name: String = "all") {
+        adapterMain.quotes.clear()
+        adapterMain.notifyDataSetChanged()
+
+        showLoading(true)
 
         ApiService().endpoint.getQuotes(100)
             .enqueue(object: Callback<QuoteResponse> {
@@ -52,48 +55,26 @@ class MainActivity : AppCompatActivity() {
                     call: Call<QuoteResponse>,
                     response: Response<QuoteResponse>
                 ) {
-//                    showLoading(false)
+                    showLoading(false)
+
                     if(response.isSuccessful) {
-                        Log.d("DEWA", response.body()!!.toString())
-                        showQuote(response.body()!!)
+                        response.body()?.let {
+                            if(name === "bubble_sort") {
+                                adapterMain.bubbleSort(it.quotes.toMutableList())
+                            } else if(name === "selection_sort") {
+                                adapterMain.selectionSort(it.quotes.toMutableList())
+                            } else {
+                                adapterMain.setData( it.quotes.toMutableList() )
+                            }
+                        }
                     }
                 }
 
                 override fun onFailure(call: Call<QuoteResponse>, t: Throwable) {
-//                    showLoading(false)
+                    showLoading(false)
                 }
 
             })
-    }
-
-    private fun showQuote(quote: QuoteResponse?){
-        quote?.let {
-            quotes = quote.quotes as ArrayList<QuoteModel>
-            adapterMain.setData( quotes )
-        }
-    }
-
-    private fun bubbleSort() {
-        // algoritma bubble sort
-        val sortedQuotes = quotes.toMutableList()
-
-        for (i in 0 until sortedQuotes.size - 1) {
-            for (j in 0 until sortedQuotes.size - i - 1) {
-                if (sortedQuotes[j].author!! > sortedQuotes[j + 1].author!!) {
-                    val temp = sortedQuotes[j]
-                    sortedQuotes[j] = sortedQuotes[j + 1]
-                    sortedQuotes[j + 1] = temp
-                }
-            }
-        }
-
-        quotes.clear()
-        quotes.addAll(sortedQuotes)
-        adapterMain.notifyDataSetChanged()
-    }
-
-    private fun selectionSort() {
-        // algoritma selection sort
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -106,10 +87,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.getItemId() === R.id.bubble_sort) {
-
+            getQuotes("bubble_sort")
         } else if (item.getItemId() === R.id.selection_sort) {
-            selectionSort()
+            getQuotes("selection_sort")
+        } else if (item.getItemId() === R.id.reset) {
+            getQuotes()
         }
         return true
+    }
+
+    fun showLoading(loading: Boolean) {
+        when(loading) {
+            true -> binding.progress.visibility = View.VISIBLE
+            false -> binding.progress.visibility = View.GONE
+        }
     }
 }

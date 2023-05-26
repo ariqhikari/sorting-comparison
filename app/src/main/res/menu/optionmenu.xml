@@ -11,4 +11,9 @@
         android:id="@+id/selection_sort"
         android:title="Selection Sort"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/reset"
+        android:title="Reset"
+        app:showAsAction="never" />
 </menu>

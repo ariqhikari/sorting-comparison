@@ -23,14 +23,44 @@ class AdapterMain(var quotes: ArrayList<QuoteModel>, var listener: OnAdapterList
 
     class ViewHolder(val binding: CardViewBinding): RecyclerView.ViewHolder(binding.root)
 
-    public fun setData(newQuotes: List<QuoteModel>) {
-        quotes.clear()
+    public fun setData(newQuotes: MutableList<QuoteModel>) {
         quotes.addAll(newQuotes)
         notifyDataSetChanged()
     }
 
-    public fun setDataNextPage(newMovies: List<QuoteModel>) {
-        quotes.addAll(newMovies)
+    fun bubbleSort(data: MutableList<QuoteModel>) {
+        val size = data.size
+
+        for (i in 0 until size - 1) {
+            for (j in 0 until size - i - 1) {
+                if (data[j].author!! > data[j + 1].author!!) {
+                    val temp = data[j]
+                    data[j] = data[j + 1]
+                    data[j + 1] = temp
+                }
+            }
+        }
+
+        quotes.addAll(data)
+        notifyDataSetChanged()
+    }
+
+    fun selectionSort(data: MutableList<QuoteModel>) {
+        val size = data.size
+
+        for (i in 0 until size - 1) {
+            var minIndex = i
+            for (j in i + 1 until size) {
+                if (data[j].author!! < data[minIndex].author!!) {
+                    minIndex = j
+                }
+            }
+            val temp = data[minIndex]
+            data[minIndex] = data[i]
+            data[i] = temp
+        }
+
+        quotes.addAll(data)
         notifyDataSetChanged()
     }
 
